@@ -1,11 +1,11 @@
-from setuptools import setup, find_packages
+from setuptools import setup
 
 with open("README_DBUTILS.md", "r") as fh:
     long_description = fh.read()
 
 setup_args = dict(
     name="dbutils-gonzalo123",  # Replace with your own username
-    version="0.1.0",
+    version="1.0.0",
     author="Gonzalo Ayuso",
     author_email="gonzalo123@gmail.com",
     description="psycopg2 db utils",
@@ -14,7 +14,6 @@ setup_args = dict(
     long_description_content_type="text/markdown",
     keywords=['psycopg2'],
     url="https://github.com/gonzalo123/dbutils",
-    # packages=find_packages(),
     packages=['dbutils'],
     classifiers=[
         "Programming Language :: Python :: 3",
