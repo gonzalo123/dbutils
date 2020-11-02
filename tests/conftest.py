@@ -2,7 +2,12 @@ import pytest
 from dbutils.dbutils import get_conn, Db
 import os
 
-DSN = f"dbname='{os.getenv('POSTGRES_DB')}' user='{os.getenv('POSTGRES_USER')}' host='{os.getenv('POSTGRES_HOST')}' password='{os.getenv('POSTGRES_PASSWORD')}'"
+DB_NAME = os.getenv('POSTGRES_DB')
+DB_USER = os.getenv('POSTGRES_USER')
+DB_PASS = os.getenv('POSTGRES_PASSWORD')
+DB_HOST = os.getenv('POSTGRES_HOST')
+
+DSN = f"dbname='{DB_NAME}' user='{DB_USER}' host='{DB_HOST}' password='{DB_PASS}'"
 
 
 @pytest.fixture(scope="function", autouse=True)
