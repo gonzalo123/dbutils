@@ -1,7 +1,6 @@
 # Database utils for psycopg2
 
-[![PyPI version fury.io](https://badge.fury.io/py/ansicolortags.svg)](https://pypi.org/project/dbutils-gonzalo123/)
-[![GitHub license](https://img.shields.io/github/license/Naereen/StrapDown.js.svg)](https://github.com/gonzalo123/dbutils/blob/master/LICENSE)
+[![PyPI version](https://badge.fury.io/py/dbutils-gonzalo123.svg)](https://badge.fury.io/py/dbutils-gonzalo123)
 
 I normally need to perform raw queries when I'm working with Python. Even when I'm using Django and it's ORM I need to execute sql against the database. As I use (almost always) PostgreSQL, I use (as we all do) psycopg2. Psycopg2 is very complete and easy to use but sometimes I need a few helpers to make my usual tasks easier. I don't want to create a complex library on top of psycopg2, only a helper.
 
