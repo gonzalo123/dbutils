@@ -1,6 +1,7 @@
 # Database utils for psycopg2
 
-[dbutils](https://github.com/gonzalo123/dbutils)
+[![PyPI version fury.io](https://badge.fury.io/py/ansicolortags.svg)](https://pypi.org/project/dbutils-gonzalo123/)
+[![GitHub license](https://img.shields.io/github/license/Naereen/StrapDown.js.svg)](https://github.com/gonzalo123/dbutils/blob/master/LICENSE)
 
 I normally need to perform raw queries when I'm working with Python. Even when I'm using Django and it's ORM I need to execute sql against the database. As I use (almost always) PostgreSQL, I use (as we all do) psycopg2. Psycopg2 is very complete and easy to use but sometimes I need a few helpers to make my usual tasks easier. I don't want to create a complex library on top of psycopg2, only a helper.
 
@@ -15,7 +16,7 @@ def fetch_all(cursor, sql, params=None):
         query=sql,
         vars={} if params is None else params)
 
-    return cursor.fetchall() 
+    return cursor.fetchall()
 ```
 
 The Db class accepts cursor in the constructor
@@ -39,7 +40,7 @@ def get_conn(dsn, named_tuple=False, autocommit=False):
     return conn
 ```
 
-Sometimes I use [NamedTuple](https://www.psycopg.org/docs/extras.html?highlight=namedtuple#namedtuple-cursor) in the cursor instead connection, so I've created a simple helper 
+Sometimes I use [NamedTuple](https://www.psycopg.org/docs/extras.html?highlight=namedtuple#namedtuple-cursor) in the cursor instead connection, so I've created a simple helper
 
 ```python
 def get_cursor(conn, named_tuple=True):
@@ -67,8 +68,8 @@ data = db.select(
     )
 ```
 This helper only allows me to perform simple where statements (joined with AND). If I need one complex Where, then I use fetch
- 
-## Insert 
+
+## Insert
 Insert one row
 ```python
 db.insert(
@@ -113,9 +114,9 @@ Sometimes we need to insert one row or update the row if the primary key already
 ```python
 def _get_upsert_sql(data, identifier, table):
     raw_sql = """
-        WITH 
+        WITH
             upsert AS (
-                UPDATE {tbl} 
+                UPDATE {tbl}
                 SET {t_set}
                 WHERE {t_where}
                 RETURNING {tbl}.*),
@@ -124,8 +125,8 @@ def _get_upsert_sql(data, identifier, table):
                 SELECT {t_select_fields}
                 WHERE NOT EXISTS (SELECT 1 FROM upsert)
                 RETURNING *)
-        SELECT * FROM upsert 
-        UNION ALL 
+        SELECT * FROM upsert
+        UNION ALL
         SELECT * FROM inserted
     """
     merger_data = {**data, **identifier}
@@ -184,7 +185,7 @@ with transactional(conn) as db:
     assert 1 == db.insert(
         table='users',
         values={'email': 'user1@email.com', 'name': 'user1'})
-```  
+```
 
 The transactional function is like that (I've created two functions. One with raw cursor and another one with my Db class):
 ```python
