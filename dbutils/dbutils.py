@@ -78,13 +78,15 @@ def insert_batch(cursor, table, values):
 
 
 def select(cursor, table, where=None):
+    schema, table = _get_table(table)
     if where:
-        raw_sql = "SELECT * from {tbl} where {t_where}"
+        raw_sql = "SELECT * from {sch}.{tbl} where {t_where}"
     else:
-        raw_sql = "SELECT * from {tbl}"
+        raw_sql = "SELECT * from {sch}.{tbl}"
         where = {}
 
     sql = psycopg2_sql.SQL(raw_sql).format(
+        sch=psycopg2_sql.Identifier(schema),
         tbl=psycopg2_sql.Identifier(table),
         t_where=psycopg2_sql.SQL(' and ').join(_get_conditions(where)))
 
@@ -93,13 +95,15 @@ def select(cursor, table, where=None):
 
 
 def delete(cursor, table, where=None):
+    schema, table = _get_table(table)
     if where:
-        raw_sql = "delete from {tbl} where {t_where}"
+        raw_sql = "delete from {sch}.{tbl} where {t_where}"
     else:
-        raw_sql = "delete from {tbl}"
+        raw_sql = "delete from {sch}.{tbl}"
         where = {}
 
     sql = psycopg2_sql.SQL(raw_sql).format(
+        sch=psycopg2_sql.Identifier(schema),
         tbl=psycopg2_sql.Identifier(table),
         t_where=psycopg2_sql.SQL(' and ').join(_get_conditions(where)))
 
@@ -123,6 +127,14 @@ def upsert(cursor, table, data, identifier):
     return cursor.rowcount
 
 
+def _get_table(table):
+    data = table.split(".")
+    if len(data) == 1:
+        return "public", table
+    else:
+        return data[0], data[1]
+
+
 def _get_transactional(conn, named_tuple, callback):
     try:
         with conn as connection:
@@ -136,17 +148,21 @@ def _get_transactional(conn, named_tuple, callback):
 
 def _get_insert_sql(table, values):
     keys = values[0].keys() if type(values) is list else values.keys()
+    schema, table = _get_table(table)
 
-    raw_sql = "insert into {tbl} ({t_fields}) values ({t_values})"
+    raw_sql = "insert into {sch}.{tbl} ({t_fields}) values ({t_values})"
     return psycopg2_sql.SQL(raw_sql).format(
+        sch=psycopg2_sql.Identifier(schema),
         tbl=psycopg2_sql.Identifier(table),
         t_fields=psycopg2_sql.SQL(', ').join(map(psycopg2_sql.Identifier, keys)),
         t_values=psycopg2_sql.SQL(', ').join(map(psycopg2_sql.Placeholder, keys)))
 
 
 def _get_update_sql(data, identifier, table):
-    raw_sql = "update {tbl} set {t_set} where {t_where}"
+    schema, table = _get_table(table)
+    raw_sql = "update {sch}.{tbl} set {t_set} where {t_where}"
     sql = psycopg2_sql.SQL(raw_sql).format(
+        sch=psycopg2_sql.Identifier(schema),
         tbl=psycopg2_sql.Identifier(table),
         t_set=psycopg2_sql.SQL(', ').join(_get_conditions(data)),
         t_where=psycopg2_sql.SQL(' and ').join(_get_conditions(identifier)))
@@ -155,23 +171,25 @@ def _get_update_sql(data, identifier, table):
 
 def _get_upsert_sql(data, identifier, table):
     raw_sql = """
-        WITH 
+        WITH
             upsert AS (
-                UPDATE {tbl} 
+                UPDATE {sch}.{tbl}
                 SET {t_set}
                 WHERE {t_where}
-                RETURNING {tbl}.*),
+                RETURNING {sch}.{tbl}.*),
             inserted AS (
-                INSERT INTO {tbl} ({t_fields})
+                INSERT INTO {sch}.{tbl} ({t_fields})
                 SELECT {t_select_fields}
                 WHERE NOT EXISTS (SELECT 1 FROM upsert)
                 RETURNING *)
-        SELECT * FROM upsert 
-        UNION ALL 
+        SELECT * FROM upsert
+        UNION ALL
         SELECT * FROM inserted
     """
     merger_data = {**data, **identifier}
+    schema, table = _get_table(table)
     sql = psycopg2_sql.SQL(raw_sql).format(
+        sch=psycopg2_sql.Identifier(schema),
         tbl=psycopg2_sql.Identifier(table),
         t_set=psycopg2_sql.SQL(', ').join(_get_conditions(data)),
         t_where=psycopg2_sql.SQL(' and ').join(_get_conditions(identifier)),

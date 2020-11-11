@@ -5,7 +5,7 @@ with open("README_DBUTILS.md", "r") as fh:
 
 setup_args = dict(
     name="dbutils-gonzalo123",  # Replace with your own username
-    version="1.0.0",
+    version="1.1.0",
     author="Gonzalo Ayuso",
     author_email="gonzalo123@gmail.com",
     description="psycopg2 db utils",
@@ -20,7 +20,7 @@ setup_args = dict(
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
     ],
-    python_requires='>=3.6'
+    python_requires='>=3.5'
 )
 
 install_requires = [
