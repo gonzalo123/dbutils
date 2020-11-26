@@ -7,8 +7,8 @@ def test_fetch_all(db):
         values={'email': 'user1@email.com', 'name': 'user1'})
 
     for reg in db.fetch_all(sql=SQL_ALL_USERS):
-        assert 'user1' == reg.name
-        assert 'user1@email.com' == reg.email
+        assert 'user1' == reg['name']
+        assert 'user1@email.com' == reg['email']
 
 
 def test_fetch_one(db):

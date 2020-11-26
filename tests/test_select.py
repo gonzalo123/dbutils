@@ -9,8 +9,8 @@ def test_select(db):
     )
 
     assert 1 == len(data)
-    assert data[0].email == 'user1@email.com'
-    assert data[0].name == 'user1'
+    assert data[0]['email'] == 'user1@email.com'
+    assert data[0]['name'] == 'user1'
 
 
 def test_select_empty_recordset(db):

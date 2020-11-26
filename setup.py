@@ -4,8 +4,8 @@ with open("README_DBUTILS.md", "r") as fh:
     long_description = fh.read()
 
 setup_args = dict(
-    name="dbutils-gonzalo123",  # Replace with your own username
-    version="1.1.0",
+    name="dbutils-gonzalo123",
+    version="1.2.0",
     author="Gonzalo Ayuso",
     author_email="gonzalo123@gmail.com",
     description="psycopg2 db utils",

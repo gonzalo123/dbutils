@@ -2,7 +2,7 @@ from contextlib import contextmanager
 
 import psycopg2
 from psycopg2 import sql as psycopg2_sql
-from psycopg2.extras import NamedTupleConnection, NamedTupleCursor, execute_batch
+from psycopg2.extras import RealDictConnection, RealDictCursor, execute_batch
 
 
 @contextmanager
@@ -18,7 +18,7 @@ def transactional_cursor(conn, named_tuple=False):
 def get_conn(dsn, named_tuple=False, autocommit=False):
     conn = psycopg2.connect(
         dsn=dsn,
-        connection_factory=NamedTupleConnection if named_tuple else None,
+        connection_factory=RealDictConnection if named_tuple else None,
     )
     conn.autocommit = autocommit
 
@@ -26,7 +26,7 @@ def get_conn(dsn, named_tuple=False, autocommit=False):
 
 
 def get_cursor(conn, named_tuple=True):
-    return conn.cursor(cursor_factory=NamedTupleCursor if named_tuple else None)
+    return conn.cursor(cursor_factory=RealDictCursor if named_tuple else None)
 
 
 def fetch_all(cursor, sql, params=None):
@@ -42,7 +42,7 @@ def fetch_one(cursor, sql, where=None):
     cursor.execute(sql, where)
     data = cursor.fetchone()
 
-    return data[0]
+    return list(data.values())[0]
 
 
 def sp_fetch_all(cursor, function, params=None):
@@ -58,12 +58,15 @@ def sp_fetch_one(cursor, function, params=None):
         vars={} if params is None else params)
     data = cursor.fetchone()
 
-    return data[0]
+    return list(data.values())[0]
 
 
 def insert(cursor, table, values):
     sql = _get_insert_sql(table=table, values=values)
-    cursor.executemany(query=sql, vars=values) if type(values) is list else cursor.execute(sql, values)
+    if type(values) is list:
+        cursor.executemany(sql, values)
+    else:
+        cursor.execute(sql, values)
 
     return cursor.rowcount
 

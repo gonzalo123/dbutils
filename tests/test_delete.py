@@ -1,3 +1,5 @@
+from psycopg2.extras import RealDictRow
+
 from tests.sql import SQL_COUNT, SQL_ALL_USERS
 
 
@@ -37,8 +39,8 @@ def test_delete_one_row_where(db):
     assert 1 == db.fetch_one(sql=SQL_COUNT)
     data = db.fetch_all(sql=SQL_ALL_USERS)
 
-    assert 'user2' == data[0].name
-    assert 'user2@email.com' == data[0].email
+    assert 'user2' == data[0]['name']
+    assert 'user2@email.com' == data[0]['email']
 
 
 def test_delete_zero_rows(db):
