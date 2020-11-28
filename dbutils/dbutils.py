@@ -30,9 +30,7 @@ def get_cursor(conn, named_tuple=True):
 
 
 def fetch_all(cursor, sql, params=None):
-    cursor.execute(
-        query=sql,
-        vars={} if params is None else params)
+    cursor.execute(sql, {} if params is None else params)
 
     return cursor.fetchall()
 
@@ -116,9 +114,8 @@ def delete(cursor, table, where=None):
 
 
 def update(cursor, table: str, data, identifier: object):
-    cursor.execute(
-        query=_get_update_sql(data, identifier, table),
-        vars={**data, **identifier})
+    sql = _get_update_sql(data, identifier, table)
+    cursor.execute(sql, {**data, **identifier})
 
     return cursor.rowcount
 
