@@ -26,32 +26,32 @@ data = db.fetch_all("SELECT * FROM table")
 ```
 
 ## Connection
-Nothing especial in the connection. I like to use "connection_factory=[NamedTupleConnection](https://www.psycopg.org/docs/extras.html?highlight=namedtupleconnection#psycopg2.extras.NamedTupleConnection)" to allow me to access to the recordset as an Object. I've created simple factory helper to create connections:
+Nothing especial in the connection. I like to use "connection_factory=[RealDictConnection](https://www.psycopg.org/docs/extras.html?highlight=namedtupleconnection#psycopg2.extras.RealDictConnection)" to allow me to access to the recordset as an dictionary. I've created simple factory helper to create connections:
 
 ```python
 def get_conn(dsn, named_tuple=False, autocommit=False):
     conn = psycopg2.connect(
         dsn=dsn,
-        connection_factory=NamedTupleConnection if named_tuple else None,
+        connection_factory=RealDictConnection if named_tuple else None,
     )
     conn.autocommit = autocommit
 
     return conn
 ```
 
-Sometimes I use [NamedTuple](https://www.psycopg.org/docs/extras.html?highlight=namedtuple#namedtuple-cursor) in the cursor instead connection, so I've created a simple helper
+Sometimes I use [RealDictCursor](https://www.psycopg.org/docs/extras.html?highlight=namedtuple#real-dictionary-cursor) in the cursor instead connection, so I've created a simple helper
 
 ```python
 def get_cursor(conn, named_tuple=True):
-    return conn.cursor(cursor_factory=NamedTupleCursor if named_tuple else None)
+    return conn.cursor(cursor_factory=RealDictCursor if named_tuple else None)
 ```
 
 ## Fetch all
 ```python
 db = Db(cursor)
 for reg in db.fetch_all(sql="SELECT email, name from users"):
-    assert 'user1' == reg.name
-    assert 'user1@email.com' == reg.email
+    assert 'user1' == reg['name']
+    assert 'user1@email.com' == reg['email']
 ```
 
 ## Fetch one
