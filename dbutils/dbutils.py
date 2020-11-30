@@ -6,27 +6,40 @@ from psycopg2.extras import RealDictConnection, RealDictCursor, execute_batch
 
 
 @contextmanager
-def transactional(conn, named_tuple=False):
-    return _get_transactional(conn, named_tuple, lambda cursor: Db(cursor))
+def transactional(conn, named=False):
+    return _get_transactional(conn, named, lambda cursor: Db(cursor))
 
 
 @contextmanager
-def transactional_cursor(conn, named_tuple=False):
-    return _get_transactional(conn, named_tuple, lambda cursor: cursor)
+def transactional_django(conn):
+    return _get_transactional(conn, False, lambda cursor: DbDjango(cursor))
 
 
-def get_conn(dsn, named_tuple=False, autocommit=False):
+@contextmanager
+def transactional_cursor_django(conn):
+    return _get_transactional(conn, False, lambda cursor: cursor)
+
+
+@contextmanager
+def transactional_cursor(conn, named=False):
+    return _get_transactional(conn, named, lambda cursor: cursor)
+
+
+def get_conn(dsn, named=False, autocommit=False):
     conn = psycopg2.connect(
         dsn=dsn,
-        connection_factory=RealDictConnection if named_tuple else None,
+        connection_factory=RealDictConnection if named else None,
     )
     conn.autocommit = autocommit
 
     return conn
 
 
-def get_cursor(conn, named_tuple=True):
-    return conn.cursor(cursor_factory=RealDictCursor if named_tuple else None)
+def get_cursor(conn, named=True):
+    if named:
+        return conn.cursor(cursor_factory=RealDictCursor)
+    else:
+        return conn.cursor()
 
 
 def fetch_all(cursor, sql, params=None):
@@ -135,10 +148,10 @@ def _get_table(table):
         return data[0], data[1]
 
 
-def _get_transactional(conn, named_tuple, callback):
+def _get_transactional(conn, named, callback):
     try:
         with conn as connection:
-            with get_cursor(conn=connection, named_tuple=named_tuple) as cursor:
+            with get_cursor(conn=connection, named=named) as cursor:
                 yield callback(cursor)
             conn.commit()
     except Exception as e:
@@ -241,3 +254,39 @@ class Db:
 
     def get_cursor(self):
         return self.cursor
+
+
+"""
+def append_column_names(func):
+    @wraps(func)
+    def wrapper_decorator(*args, **kwargs):
+        db = args[0]
+        data = func(*args, **kwargs)
+        column_names = [desc[0] for desc in db.get_cursor().description]
+        # return [dict(zip(column_names, row)) for row in data]
+        return data
+
+    return wrapper_decorator
+
+
+class DbDjango(Db):
+    @append_column_names
+    def fetch_all(self, sql, params=None):
+        return super().fetch_all(sql, params)
+
+    @append_column_names
+    def sp_fetch_one(self, function, params=None):
+        return super().sp_fetch_one(function, params)
+
+    @append_column_names
+    def sp_fetch_all(self, function, params=None):
+        return super().sp_fetch_all(function, params)
+
+    @append_column_names
+    def fetch_one(self, sql, where=None):
+        return super().fetch_one(sql, where)
+
+    @append_column_names
+    def select(self, table, where=None):
+        return super().select(table, where)
+"""

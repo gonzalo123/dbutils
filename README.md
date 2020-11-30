@@ -29,10 +29,10 @@ data = db.fetch_all("SELECT * FROM table")
 Nothing especial in the connection. I like to use "connection_factory=[RealDictConnection](https://www.psycopg.org/docs/extras.html?highlight=namedtupleconnection#psycopg2.extras.RealDictConnection)" to allow me to access to the recordset as an dictionary. I've created simple factory helper to create connections:
 
 ```python
-def get_conn(dsn, named_tuple=False, autocommit=False):
+def get_conn(dsn, named=False, autocommit=False):
     conn = psycopg2.connect(
         dsn=dsn,
-        connection_factory=RealDictConnection if named_tuple else None,
+        connection_factory=RealDictConnection if named else None,
     )
     conn.autocommit = autocommit
 
@@ -42,8 +42,8 @@ def get_conn(dsn, named_tuple=False, autocommit=False):
 Sometimes I use [RealDictCursor](https://www.psycopg.org/docs/extras.html?highlight=namedtuple#real-dictionary-cursor) in the cursor instead connection, so I've created a simple helper
 
 ```python
-def get_cursor(conn, named_tuple=True):
-    return conn.cursor(cursor_factory=RealDictCursor if named_tuple else None)
+def get_cursor(conn, named=True):
+    return conn.cursor(cursor_factory=RealDictCursor if named else None)
 ```
 
 ## Fetch all
@@ -188,10 +188,10 @@ with transactional(conn) as db:
 
 The transactional function is like that (I've created two functions. One with raw cursor and another one with my Db class):
 ```python
-def _get_transactional(conn, named_tuple, callback):
+def _get_transactional(conn, named, callback):
     try:
         with conn as connection:
-            with get_cursor(conn=connection, named_tuple=named_tuple) as cursor:
+            with get_cursor(conn=connection, named=named) as cursor:
                 yield callback(cursor)
             conn.commit()
     except Exception as e:
@@ -199,13 +199,13 @@ def _get_transactional(conn, named_tuple, callback):
         raise e
 
 @contextmanager
-def transactional(conn, named_tuple=False):
-    return _get_transactional(conn, named_tuple, lambda cursor: Db(cursor))
+def transactional(conn, named=False):
+    return _get_transactional(conn, named, lambda cursor: Db(cursor))
 
 
 @contextmanager
-def transactional_cursor(conn, named_tuple=False):
-    return _get_transactional(conn, named_tuple, lambda cursor: cursor)
+def transactional_cursor(conn, named=False):
+    return _get_transactional(conn, named, lambda cursor: cursor)
 ```
 
 ## Return values
