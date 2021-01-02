@@ -8,6 +8,11 @@
 pip install dbutils-gonzalo123
 ```
 
+From github
+```commandline
+pip install -e git+https://github.com/gonzalo123/dbutils#egg=dbutils-gonzalo123
+```
+
 ### Run test
 ```commandline
 pytest

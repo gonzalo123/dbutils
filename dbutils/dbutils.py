@@ -1,4 +1,5 @@
 from contextlib import contextmanager
+from functools import wraps
 
 import psycopg2
 from psycopg2 import sql as psycopg2_sql
@@ -12,12 +13,12 @@ def transactional(conn, named=False):
 
 @contextmanager
 def transactional_django(conn):
-    return _get_transactional(conn, False, lambda cursor: DbDjango(cursor))
+    return _get_transactional_django(conn, lambda cursor: DbDjango(cursor))
 
 
 @contextmanager
 def transactional_cursor_django(conn):
-    return _get_transactional(conn, False, lambda cursor: cursor)
+    return _get_transactional_django(conn, lambda cursor: cursor)
 
 
 @contextmanager
@@ -53,7 +54,7 @@ def fetch_one(cursor, sql, where=None):
     cursor.execute(sql, where)
     data = cursor.fetchone()
 
-    return list(data.values())[0]
+    return data[0] if type(data) is tuple else list(data.values())[0]
 
 
 def sp_fetch_all(cursor, function, params=None):
@@ -69,7 +70,7 @@ def sp_fetch_one(cursor, function, params=None):
         vars={} if params is None else params)
     data = cursor.fetchone()
 
-    return list(data.values())[0]
+    return data[0] if type(data) is tuple else list(data.values())[0]
 
 
 def insert(cursor, table, values):
@@ -146,6 +147,16 @@ def _get_table(table):
         return "public", table
     else:
         return data[0], data[1]
+
+
+def _get_transactional_django(conn, callback):
+    try:
+        with get_cursor(conn=conn, named=False) as cursor:
+            yield callback(cursor)
+        conn.commit()
+    except Exception as e:
+        conn.rollback()
+        raise e
 
 
 def _get_transactional(conn, named, callback):
@@ -256,15 +267,13 @@ class Db:
         return self.cursor
 
 
-"""
 def append_column_names(func):
     @wraps(func)
     def wrapper_decorator(*args, **kwargs):
         db = args[0]
         data = func(*args, **kwargs)
         column_names = [desc[0] for desc in db.get_cursor().description]
-        # return [dict(zip(column_names, row)) for row in data]
-        return data
+        return [dict(zip(column_names, row)) for row in data]
 
     return wrapper_decorator
 
@@ -275,18 +284,5 @@ class DbDjango(Db):
         return super().fetch_all(sql, params)
 
     @append_column_names
-    def sp_fetch_one(self, function, params=None):
-        return super().sp_fetch_one(function, params)
-
-    @append_column_names
-    def sp_fetch_all(self, function, params=None):
-        return super().sp_fetch_all(function, params)
-
-    @append_column_names
-    def fetch_one(self, sql, where=None):
-        return super().fetch_one(sql, where)
-
-    @append_column_names
     def select(self, table, where=None):
         return super().select(table, where)
-"""
