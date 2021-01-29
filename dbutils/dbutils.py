@@ -57,17 +57,19 @@ def fetch_one(cursor, sql, where=None):
     return data[0] if type(data) is tuple else list(data.values())[0]
 
 
-def sp_fetch_all(cursor, function, params=None):
+def _call_proc(cursor, function, params=None):
     params = {} if params is None else params
     cursor.callproc(function, params)
+
+
+def sp_fetch_all(cursor, function, params=None):
+    _call_proc(cursor, function, params)
 
     return cursor.fetchall()
 
 
 def sp_fetch_one(cursor, function, params=None):
-    cursor.callproc(
-        procname=function,
-        vars={} if params is None else params)
+    _call_proc(cursor, function, params)
     data = cursor.fetchone()
 
     return data[0] if type(data) is tuple else list(data.values())[0]
