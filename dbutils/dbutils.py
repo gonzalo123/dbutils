@@ -53,8 +53,10 @@ def fetch_one(cursor, sql, where=None):
     where = {} if where is None else where
     cursor.execute(sql, where)
     data = cursor.fetchone()
-
-    return data[0] if type(data) is tuple else list(data.values())[0]
+    if data:
+        return data[0] if type(data) is tuple else list(data.values())[0]
+    else:
+        return None
 
 
 def _call_proc(cursor, function, params=None):

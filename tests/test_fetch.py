@@ -19,6 +19,14 @@ def test_fetch_one(db):
     assert 1 == db.fetch_one(sql=SQL_COUNT)
 
 
+def test_fetch_none(db):
+    assert 1 == db.insert(
+        table='users',
+        values={'email': 'user1@email.com', 'name': 'user1'})
+
+    assert None is db.fetch_one(sql=SQL_EMPTY_RECORDSET)
+
+
 def test_empty_recordset(db):
     assert 1 == db.insert(
         table='users',
