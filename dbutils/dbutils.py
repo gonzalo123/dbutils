@@ -49,6 +49,13 @@ def fetch_all(cursor, sql, params=None):
     return cursor.fetchall()
 
 
+def execute(cursor, sql, params=None):
+    params = {} if params is None else params
+    cursor.execute(sql, params)
+
+    return cursor.rowcount
+
+
 def fetch_one(cursor, sql, where=None):
     where = {} if where is None else where
     cursor.execute(sql, where)
@@ -239,6 +246,9 @@ class Db:
 
     def fetch_all(self, sql, params=None):
         return fetch_all(self.cursor, sql, params)
+
+    def execute(self, sql, params=None):
+        return execute(self.cursor, sql, params)
 
     def select(self, table, where=None):
         return select(self.cursor, table, where)
